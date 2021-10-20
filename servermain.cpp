@@ -38,11 +38,13 @@ void sigchld_handler(int s)
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
 {
-    if (sa->sa_family == AF_INET) {
-        return &(((struct sockaddr_in*)sa)->sin_addr);
-    }
+    // if (sa->sa_family == AF_INET) {
+    //     return &(((struct sockaddr_in*)sa)->sin_addr);
+    // }
 
-    return &(((struct sockaddr_in6*)sa)->sin6_addr);
+    // return &(((struct sockaddr_in6*)sa)->sin6_addr);
+
+    return &(((struct sockaddr_in*)sa)->sin_addr);
 }
 
 int main(void)
@@ -61,11 +63,11 @@ int main(void)
     int rv;
 
     memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_UNSPEC;
+    hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE;
+    // hints.ai_flags = AI_PASSIVE;
 
-    if ((rv = getaddrinfo(NULL, PORT, &hints, &servinfo)) != 0) {
+    if ((rv = getaddrinfo("127.0.0.1", PORT, &hints, &servinfo)) != 0) {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
         return 1;
     }
@@ -123,10 +125,8 @@ int main(void)
             continue;
         }
 
-        inet_ntop(their_addr.ss_family,
-            get_in_addr((struct sockaddr *)&their_addr),
-            s, sizeof s);
-        printf("server: got connection from %s\n", s);
+        inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), s, sizeof s);
+        printf("server: got connection from %s, port %d\n", s, ((struct sockaddr_in*)&their_addr)->sin_port);
 
         if (!fork()) { // this is the child process
             close(sockfd); // child doesn't need the listener
