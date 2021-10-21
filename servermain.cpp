@@ -239,9 +239,13 @@ int main(void)
         exit(1);
     }
 
+    int client_id = 0;
+
     // Wait Loop
     while(1) {
     
+        client_id += 1;
+
         // Accept incoming connection
         sin_size = sizeof their_addr;
         new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
@@ -267,7 +271,6 @@ int main(void)
 
                 int numbytes;
                 char buf[MAXDATASIZE];
-                int client_id = client_port;
 
 
                 if ((numbytes = recv(new_fd, buf, MAXDATASIZE, 0)) != -1) {
@@ -286,7 +289,7 @@ int main(void)
                 if(LocationMap.find(cityName) != LocationMap.end()) {
                     stateName = LocationMap[cityName];
                     cout << cityName << " is associated with state " << stateName << endl;
-                    cout << "Main Server has sent searching result to client " << patch::to_string(client_id) << " using TCP over port " << PORT;
+                    cout << "Main Server has sent searching result to client " << patch::to_string(client_id) << " using TCP over port " << PORT << endl;
                     response = "Client has recieved results from the Main Server:\n" + cityName + " is associated with state " + stateName;
                 }
                 else{
@@ -296,11 +299,7 @@ int main(void)
                     response = cityName + " not found";
                 }
 
-                if(send(new_fd, &response[0], response.length(), 0) != -1) {
-                    cout << "Mainserver has sent following response to client:" << endl;
-                    cout << response << endl;
-                }
-                else {
+                if(send(new_fd, &response[0], response.length(), 0) == -1) {
                     cout << "Main server response failed!" << endl;
                     exit(1);
                 }    

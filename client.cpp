@@ -123,8 +123,7 @@ int main(int argc, char *argv[])
         string query;
 
         cout << "Enter City Name: ";
-        cin >> query;
-        cout << endl;
+        getline(cin, query);
 
         if(send(sockfd, &query[0], query.length(), 0) != -1) {
             cout << "Client has sent city " << query << " to Main Server using TCP." << endl;
