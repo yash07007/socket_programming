@@ -21,10 +21,21 @@
 #include <fstream>
 #include <string>
 #include <map>
+#include <sstream>
 
 using namespace std;
 
-template<typename Map>
+namespace patch
+{
+    template < typename T > std::string to_string( const T& n )
+    {
+        std::ostringstream stm ;
+        stm << n ;
+        return stm.str() ;
+    }
+}
+
+// template<typename Map>
 
 // Definations
 
@@ -38,14 +49,14 @@ template<typename Map>
 // Utility Functions
 
 // Funtion to print map data structure
-void print_map(Map& m)
-{
-	cout << "[ ";
-    for (auto &item : m) {
-        cout << item.first << ":" << item.second << " ";
-    }
-    cout << "]\n";
-}
+// void print_map(Map& m)
+// {
+// 	cout << "[ ";
+//     for (auto &item : m) {
+//         cout << item.first << ":" << item.second << " ";
+//     }
+//     cout << "]\n";
+// }
 
 // Function to kill zombie processes
 void sigchld_handler(int s)
@@ -73,6 +84,7 @@ int main(void)
     // initalising Maps (Dictionary)
   	map<string, string> LocationMap;
   	map<string, bool> CityPresent;
+    string states = "";
 
     // opening file in read mode
   	ifstream myfile("list.txt");
@@ -81,7 +93,6 @@ int main(void)
   	{
   	    string line,stateName;
   	    int isState = 1;
-        string states = "";
 
     	while(getline(myfile,line))
     	{
@@ -240,10 +251,10 @@ int main(void)
         }
 
         // Converting ip address from binary to presentable format
-        int thier_port;
+        int client_port;
         inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), s, sizeof s);
         // printf("Server: Got connection from %s, port %d\n", s, ((struct sockaddr_in*)&their_addr)->sin_port);
-        their_port = ((struct sockaddr_in*)&their_addr)->sin_port;
+        client_port = ((struct sockaddr_in*)&their_addr)->sin_port;
 
         // Create fork for child process
         if (!fork()) { 
@@ -254,37 +265,38 @@ int main(void)
 
             int numbytes;
             char buf[MAXDATASIZE];
-            int client_id = thier_port;
+            int client_id = client_port;
 
 
             if ((numbytes = recv(new_fd, buf, MAXDATASIZE-1, 0)) != -1) {
                 buf[numbytes] = '\0';
-                cout << "Main server has recieved the request on city " << buf << " from client " << client_id << "using TCP over port " << thier_port << endl;
+                cout << "Main server has recieved the request on city " << buf << " from client " << client_id << "using TCP over port " << client_port << endl;
             }
             else {
                 cout << "Recieve Failed" << endl;
                 exit(1);
             }
 
-            string cityName = buff;
+            string cityName = buf;
             string stateName, response;
 
-            if(LocationMap[cityName]) {
+            //lang_map.find(key_to_find) != lang_map.end()
+            if(LocationMap.find(cityName) != LocationMap.end()) {
                 stateName = LocationMap[cityName];
                 cout << cityName << "is associated with state " << stateName << endl;
                 response = "Main Server has sent searching result to client ";
-                response = response + client_id;
+                response = response + patch::to_string(client_id);
                 response = response + " using TCP over port ";
                 response = response + PORT;
             }
             else{
-                LocationMap.erase(cityName);
+                //LocationMap.erase(cityName);
                 cout << cityName << " does not show up in states " << states << endl;
                 response = "The Main server has sent \"" + cityName;
                 response = response + ":Not Found\" to client ";
-                response = response + client_id;
+                response = response + patch::to_string(client_id);
                 response = response + " using TCP over port ";
-                response = response + thier_port;
+                response = response + patch::to_string(client_port);
             }
 
             if(send(new_fd, response, response.length(), 0) != -1) {
