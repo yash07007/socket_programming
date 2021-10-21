@@ -89,8 +89,8 @@ int main(void)
       		if(isState == 1){
                 stateName = line;
                 cout << stateName << endl;
-                states = strcat(states, stateName);
-                states = strcat(states, ",");
+                states = states + stateName;
+                states = states + ",";
                 isState = 0;
       	    }
       	    else {
@@ -272,19 +272,19 @@ int main(void)
             if(LocationMap[cityName]) {
                 stateName = LocationMap[cityName];
                 cout << cityName << "is associated with state " << stateName << endl;
-                response = strcat("Main Server has sent searching result to client ");
-                response = strcat(response, client_id);
-                response = strcat(response, " using TCP over port ");
-                response = strcat(response, PORT);
+                response = "Main Server has sent searching result to client ";
+                response = response + client_id;
+                response = response + " using TCP over port ";
+                response = response + PORT;
             }
             else{
                 LocationMap.erase(cityName);
                 cout << cityName << " does not show up in states " << states << endl;
-                response = strcat("The Main server has sent \"", cityName);
-                response = strcat(response, ":Not Found\" to client ");
-                response = strcat(response, client_id);
-                response = strcat(response, " using TCP over port ");
-                response = strcat(response, thier_port);
+                response = "The Main server has sent \"" + cityName;
+                response = response + ":Not Found\" to client ";
+                response = response + client_id;
+                response = response + " using TCP over port ";
+                response = response + thier_port;
             }
 
             if(send(new_fd, response, response.length(), 0) != -1) {
