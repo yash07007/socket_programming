@@ -304,8 +304,8 @@ int main(void)
             }    
 
             // Close Child
-            // close(new_fd);
-            // exit(0);
+            close(new_fd);
+            exit(0);
         }
 
         // Parent process doesnt need new_fd
