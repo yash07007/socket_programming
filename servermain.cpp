@@ -17,12 +17,35 @@
 #include <sys/wait.h>
 #include <signal.h>
 
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <map>
+
+using namespace std;
+
+template<typename Map>
+
 // Definations
 
 // 33 + 504 (last 3 digit of id)
 #define PORT "33504"
 // connection queue 
 #define BACKLOG 10  
+// Max number of bytes we can get at once
+#define MAXDATASIZE 100
+
+// Utility Functions
+
+// Funtion to print map data structure
+void print_map(Map& m)
+{
+	cout << "[ ";
+    for (auto &item : m) {
+        cout << item.first << ":" << item.second << " ";
+    }
+    cout << "]\n";
+}
 
 // Function to kill zombie processes
 void sigchld_handler(int s)
@@ -38,8 +61,65 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in*)sa)->sin_addr);
 }
 
+
+// Main Function
 int main(void)
 {
+
+    // COMPUTATION
+
+    //Reading and storing data in MAP from list.txt
+
+    // initalising Maps (Dictionary)
+  	map<string, string> LocationMap;
+  	map<string, bool> CityPresent;
+
+    // opening file in read mode
+  	ifstream myfile("list.txt");
+    
+    if(myfile.is_open())
+  	{
+  	    string line,stateName;
+  	    int isState = 1;
+        string states = "";
+
+    	while(getline(myfile,line))
+    	{
+            // If state store it in state variable
+      		if(isState == 1){
+                stateName = line;
+                cout << stateName << endl;
+                states = strcat(states, stateName);
+                states = strcat(states, ",");
+                isState = 0;
+      	    }
+      	    else {
+                size_t pos = 0;
+                string city;
+                while ((pos = line.find(',')) != string::npos) {
+                    city = line.substr(0, pos);
+                    if(!CityPresent[city]) {
+						CityPresent.erase(city);
+                        cout << city << endl;
+                    }
+                    CityPresent.insert(make_pair(city, true));
+                    LocationMap.insert(make_pair(city, stateName));
+                    line.erase(0, pos + 1);
+                }
+                LocationMap.insert(make_pair(line, stateName));
+                isState = 1;
+      	    }
+        }
+        myfile.close();
+		cout << "Main server has read the state list from list.txt" << endl;
+    }
+  	else {
+		cout << "Unable to open list.txt file" << endl;
+        exit(1); 
+	} 
+
+    // COMMUNICATION
+
     // sockfd: server socket descriptor
     // new_fd: connected socket descriptor
     int sockfd, new_fd;
@@ -137,8 +217,7 @@ int main(void)
         perror("Server: Couldnt listen for connections");
         exit(1);
     }
-    printf("Server: Waiting for connections...\n");
-
+    cout << "Main server is up and running." << endl;
 
     // Reap all dead/zombie processes
     sa.sa_handler = sigchld_handler;
@@ -161,8 +240,10 @@ int main(void)
         }
 
         // Converting ip address from binary to presentable format
+        int thier_port;
         inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), s, sizeof s);
-        printf("Server: Got connection from %s, port %d\n", s, ((struct sockaddr_in*)&their_addr)->sin_port);
+        // printf("Server: Got connection from %s, port %d\n", s, ((struct sockaddr_in*)&their_addr)->sin_port);
+        their_port = ((struct sockaddr_in*)&their_addr)->sin_port;
 
         // Create fork for child process
         if (!fork()) { 
@@ -170,8 +251,50 @@ int main(void)
             close(sockfd); 
             
             // Child handeling
-            if (send(new_fd, "Hello, world!", 13, 0) == -1)
-                perror("send");
+
+            int numbytes;
+            char buf[MAXDATASIZE];
+            int client_id = thier_port;
+
+
+            if ((numbytes = recv(new_fd, buf, MAXDATASIZE-1, 0)) != -1) {
+                buf[numbytes] = '\0';
+                cout << "Main server has recieved the request on city " << buf << " from client " << client_id << "using TCP over port " << thier_port << endl;
+            }
+            else {
+                cout << "Recieve Failed" << endl;
+                exit(1);
+            }
+
+            string cityName = buff;
+            string stateName, response;
+
+            if(LocationMap[cityName]) {
+                stateName = LocationMap[cityName];
+                cout << cityName << "is associated with state " << stateName << endl;
+                response = strcat("Main Server has sent searching result to client ");
+                response = strcat(response, client_id);
+                response = strcat(response, " using TCP over port ");
+                response = strcat(response, PORT);
+            }
+            else{
+                LocationMap.erase(cityName);
+                cout << cityName << " does not show up in states " << states << endl;
+                response = strcat("The Main server has sent \"", cityName);
+                response = strcat(response, ":Not Found\" to client ");
+                response = strcat(response, client_id);
+                response = strcat(response, " using TCP over port ");
+                response = strcat(response, thier_port);
+            }
+
+            if(send(new_fd, response, response.length(), 0) != -1) {
+                cout << "Mainserver has sent folling resonse to client:" << endl;
+                cout << response << endl;
+            }
+            else {
+                cout << "Main server response failed!" << endl;
+                exit(1);
+            }    
 
             // Close Child
             close(new_fd);

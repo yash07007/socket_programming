@@ -13,6 +13,11 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
+#include <iostream>
+#include <string>
+
+using namespace std;
+
 // Server port client will be connecting to
 #define PORT "33504" 
 // Max number of bytes we can get at once
@@ -27,10 +32,7 @@ void *get_in_addr(struct sockaddr *sa)
 int main(int argc, char *argv[])
 {
     // sockfd: client scoket descriptor
-    // numbytes: max no of bytes that can be recieved at once
-    // buf: buffer to store incoming data
-    int sockfd, numbytes;  
-    char buf[MAXDATASIZE];
+    int sockfd;
 
     // Intializing structs
     // hints: to initialize addrinfo struct
@@ -109,18 +111,46 @@ int main(int argc, char *argv[])
 
     // Converting ip address from binary to presentable format
     inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr), s, sizeof s);
-    printf("Client: Connecting to %s, Port %s\n", s, PORT);
+    // printf("Client: Connecting to %s, Port %s\n", s, PORT);
 
     // Free servinfo struct, its work is done
     freeaddrinfo(servinfo); // all done with this structure
 
-    // Interation with server
-    if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
-        perror("recv");
-        exit(1);
+    cout << "Client is up and running.";
+
+    while(1) {
+
+        string query;
+
+        cout << "Enter City Name: ";
+        cin >> query;
+        cout << endl;
+
+        if(send(sockfd, query, query.length(), 0) != -1) {
+            cout << "Client has sent city " << query << " to Main Server using TCP." << endl;
+        }
+        else {
+            cout << "Client query failed!" << endl;
+            exit(1);
+        }
+
+        // numbytes: max no of bytes that can be recieved at once
+        // buf: buffer to store incoming data
+        int numbytes;  
+        char buf[MAXDATASIZE];
+
+        if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) != -1) {
+            buf[numbytes] = '\0';
+            cout << buf << endl;
+        }
+        else {
+            cout << "Recieve Failed" << endl;
+            exit(1);
+        }
+
+        cout << "----Start a new query" << endl;
+
     }
-    buf[numbytes] = '\0';
-    printf("client: received '%s'\n",buf);
 
     // Close Socket
     close(sockfd);
