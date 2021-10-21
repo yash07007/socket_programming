@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
     // Free servinfo struct, its work is done
     freeaddrinfo(servinfo); // all done with this structure
 
-    cout << "Client is up and running.";
+    cout << "Client is up and running. << endl";
 
     while(1) {
 
