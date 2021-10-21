@@ -21,7 +21,7 @@ using namespace std;
 // Server port client will be connecting to
 #define PORT "33504" 
 // Max number of bytes we can get at once
-#define MAXDATASIZE 100
+#define MAXDATASIZE 1024
 
 // get IPv4 sockaddr
 void *get_in_addr(struct sockaddr *sa)
@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
         cin >> query;
         cout << endl;
 
-        if(send(sockfd, query, query.length(), 0) != -1) {
+        if(send(sockfd, &query[0], query.length(), 0) != -1) {
             cout << "Client has sent city " << query << " to Main Server using TCP." << endl;
         }
         else {
@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
         int numbytes;  
         char buf[MAXDATASIZE];
 
-        if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) != -1) {
+        if ((numbytes = recv(sockfd, buf, MAXDATASIZE, 0)) != -1) {
             buf[numbytes] = '\0';
             cout << buf << endl;
         }
@@ -148,12 +148,12 @@ int main(int argc, char *argv[])
             exit(1);
         }
 
-        cout << "----Start a new query" << endl;
+        cout << "----Start a new query----" << endl;
 
     }
 
     // Close Socket
-    close(sockfd);
+    // close(sockfd);
 
     return 0;
 }

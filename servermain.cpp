@@ -44,7 +44,7 @@ namespace patch
 // connection queue 
 #define BACKLOG 10  
 // Max number of bytes we can get at once
-#define MAXDATASIZE 100
+#define MAXDATASIZE 1024
 
 // Utility Functions
 
@@ -268,9 +268,9 @@ int main(void)
             int client_id = client_port;
 
 
-            if ((numbytes = recv(new_fd, buf, MAXDATASIZE-1, 0)) != -1) {
+            if ((numbytes = recv(new_fd, buf, MAXDATASIZE, 0)) != -1) {
                 buf[numbytes] = '\0';
-                cout << "Main server has recieved the request on city " << buf << " from client " << client_id << "using TCP over port " << client_port << endl;
+                cout << "Main server has recieved the request on city " << buf << " from client " << client_id << " using TCP over port " << client_port << endl;
             }
             else {
                 cout << "Recieve Failed" << endl;
@@ -283,24 +283,19 @@ int main(void)
             //lang_map.find(key_to_find) != lang_map.end()
             if(LocationMap.find(cityName) != LocationMap.end()) {
                 stateName = LocationMap[cityName];
-                cout << cityName << "is associated with state " << stateName << endl;
-                response = "Main Server has sent searching result to client ";
-                response = response + patch::to_string(client_id);
-                response = response + " using TCP over port ";
-                response = response + PORT;
+                cout << cityName << " is associated with state " << stateName << endl;
+                cout << "Main Server has sent searching result to client " << patch::to_string(client_id) << " using TCP over port " << PORT;
+                response = "Client has recieved results from the Main Server:\n" + cityName + " is associated with state " + stateName;
             }
             else{
                 //LocationMap.erase(cityName);
                 cout << cityName << " does not show up in states " << states << endl;
-                response = "The Main server has sent \"" + cityName;
-                response = response + ":Not Found\" to client ";
-                response = response + patch::to_string(client_id);
-                response = response + " using TCP over port ";
-                response = response + patch::to_string(client_port);
+                cout << "The Main server has sent \"" << cityName << ":Not Found\" to client " << patch::to_string(client_id) << " using TCP over port " << patch::to_string(client_port);
+                response = cityName + " not found";
             }
 
-            if(send(new_fd, response, response.length(), 0) != -1) {
-                cout << "Mainserver has sent folling resonse to client:" << endl;
+            if(send(new_fd, &response[0], response.length(), 0) != -1) {
+                cout << "Mainserver has sent following response to client:" << endl;
                 cout << response << endl;
             }
             else {
@@ -309,7 +304,7 @@ int main(void)
             }    
 
             // Close Child
-            close(new_fd);
+            // close(new_fd);
             exit(0);
         }
 
