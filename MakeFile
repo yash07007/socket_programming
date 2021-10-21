@@ -1,6 +1,4 @@
-all: compile
-
-compile: 
+all: 
 	g++ -o servermain servermain.cpp
 	g++ -o client client.cpp
 
