@@ -263,16 +263,16 @@ int main(void)
         // Create fork for child process
         if (!fork()) { 
             // Child doesn't need the listener
-            close(sockfd); 
-            
+            close(sockfd);         
 
+            // Child handeling (do chat infinately)
             while(1) {
-                // Child handeling
 
+                // Input Buffer Sized and Buffer
                 int numbytes;
                 char buf[MAXDATASIZE];
 
-
+                // Recieve Query from Client (get city name as response)
                 if ((numbytes = recv(new_fd, buf, MAXDATASIZE, 0)) != -1) {
                     buf[numbytes] = '\0';
                     cout << "Main server has recieved the request on city " << buf << " from client " << client_id << " using TCP over port " << client_port << endl;
@@ -285,7 +285,7 @@ int main(void)
                 string cityName = buf;
                 string stateName, response;
 
-                //lang_map.find(key_to_find) != lang_map.end()
+                // Compute answer to query (get state name from dictionary)
                 if(LocationMap.find(cityName) != LocationMap.end()) {
                     stateName = LocationMap[cityName];
                     cout << cityName << " is associated with state " << stateName << endl;
@@ -293,12 +293,12 @@ int main(void)
                     response = "Client has recieved results from the Main Server:\n" + cityName + " is associated with state " + stateName;
                 }
                 else{
-                    //LocationMap.erase(cityName);
                     cout << cityName << " does not show up in states " << states << endl;
                     cout << "The Main server has sent \"" << cityName << ":Not Found\" to client " << patch::to_string(client_id) << " using TCP over port " << patch::to_string(client_port);
                     response = cityName + " not found";
                 }
 
+                // Send answer as response to client (send state name or not found message to client)
                 if(send(new_fd, &response[0], response.length(), 0) == -1) {
                     cout << "Main server response failed!" << endl;
                     exit(1);

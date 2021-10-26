@@ -118,13 +118,15 @@ int main(int argc, char *argv[])
 
     cout << "Client is up and running." << endl;
 
+    // Query infinately
     while(1) {
 
+        // Ask for query input (get cityname)
         string query;
-
         cout << "Enter City Name: ";
         getline(cin, query);
 
+        // Send query to server (sent cityname to server to get statename)
         if(send(sockfd, &query[0], query.length(), 0) != -1) {
             cout << "Client has sent city " << query << " to Main Server using TCP." << endl;
         }
@@ -133,11 +135,13 @@ int main(int argc, char *argv[])
             exit(1);
         }
 
+        // initialize buffer
         // numbytes: max no of bytes that can be recieved at once
         // buf: buffer to store incoming data
         int numbytes;  
         char buf[MAXDATASIZE];
 
+        // recieve response from server (get statename from server)
         if ((numbytes = recv(sockfd, buf, MAXDATASIZE, 0)) != -1) {
             buf[numbytes] = '\0';
             cout << buf << endl;
@@ -147,6 +151,7 @@ int main(int argc, char *argv[])
             exit(1);
         }
 
+        // New query header
         cout << "----Start a new query----" << endl;
 
     }
