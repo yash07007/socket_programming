@@ -36,7 +36,7 @@ int main(void)
     struct sockaddr_storage their_addr;
     char buf[MAXBUFLEN];
     socklen_t addr_len;
-    char s[INET6_ADDRSTRLEN];
+    char s[INET_ADDRSTRLEN];
 
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_INET; // set to AF_INET to use IPv4
