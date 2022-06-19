@@ -1,2 +1,6 @@
 .vscode
-a.*
+a.out
+a.exe
+client
+servermain
+
